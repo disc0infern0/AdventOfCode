@@ -11,6 +11,7 @@
 		499971E62765FBC3001A3BF6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499971E52765FBC3001A3BF6 /* ContentView.swift */; };
 		499971E82765FBC4001A3BF6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 499971E72765FBC4001A3BF6 /* Assets.xcassets */; };
 		499971EB2765FBC4001A3BF6 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 499971EA2765FBC4001A3BF6 /* Preview Assets.xcassets */; };
+		499971F327660070001A3BF6 /* PuzzleInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499971F22766006F001A3BF6 /* PuzzleInput.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +21,7 @@
 		499971E72765FBC4001A3BF6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		499971EA2765FBC4001A3BF6 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		499971EC2765FBC4001A3BF6 /* adventofCode.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = adventofCode.entitlements; sourceTree = "<group>"; };
+		499971F22766006F001A3BF6 /* PuzzleInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuzzleInput.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +56,7 @@
 			children = (
 				499971E32765FBC3001A3BF6 /* adventofCodeApp.swift */,
 				499971E52765FBC3001A3BF6 /* ContentView.swift */,
+				499971F22766006F001A3BF6 /* PuzzleInput.swift */,
 				499971E72765FBC4001A3BF6 /* Assets.xcassets */,
 				499971EC2765FBC4001A3BF6 /* adventofCode.entitlements */,
 				499971E92765FBC4001A3BF6 /* Preview Content */,
@@ -141,6 +144,7 @@
 			files = (
 				499971E62765FBC3001A3BF6 /* ContentView.swift in Sources */,
 				499971E42765FBC3001A3BF6 /* adventofCodeApp.swift in Sources */,
+				499971F327660070001A3BF6 /* PuzzleInput.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
