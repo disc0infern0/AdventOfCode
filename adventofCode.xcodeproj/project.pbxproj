@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4928DF762770946000327CD6 /* Matrix in Frameworks */ = {isa = PBXBuildFile; productRef = 4928DF752770946000327CD6 /* Matrix */; };
 		499971E42765FBC3001A3BF6 /* adventofCodeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499971E32765FBC3001A3BF6 /* adventofCodeApp.swift */; };
 		499971E62765FBC3001A3BF6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499971E52765FBC3001A3BF6 /* ContentView.swift */; };
 		499971E82765FBC4001A3BF6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 499971E72765FBC4001A3BF6 /* Assets.xcassets */; };
@@ -15,6 +16,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4928DF782770973300327CD6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		499971E02765FBC3001A3BF6 /* adventofCode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = adventofCode.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		499971E32765FBC3001A3BF6 /* adventofCodeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = adventofCodeApp.swift; sourceTree = "<group>"; };
 		499971E52765FBC3001A3BF6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -29,6 +31,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4928DF762770946000327CD6 /* Matrix in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -54,6 +57,7 @@
 		499971E22765FBC3001A3BF6 /* adventofCode */ = {
 			isa = PBXGroup;
 			children = (
+				4928DF782770973300327CD6 /* Info.plist */,
 				499971E32765FBC3001A3BF6 /* adventofCodeApp.swift */,
 				499971E52765FBC3001A3BF6 /* ContentView.swift */,
 				499971F427663CFB001A3BF6 /* PuzzleInput.swift */,
@@ -88,6 +92,9 @@
 			dependencies = (
 			);
 			name = adventofCode;
+			packageProductDependencies = (
+				4928DF752770946000327CD6 /* Matrix */,
+			);
 			productName = adventofCode;
 			productReference = 499971E02765FBC3001A3BF6 /* adventofCode.app */;
 			productType = "com.apple.product-type.application";
@@ -116,6 +123,9 @@
 				Base,
 			);
 			mainGroup = 499971D72765FBC3001A3BF6;
+			packageReferences = (
+				4928DF742770945F00327CD6 /* XCRemoteSwiftPackageReference "Matrix" */,
+			);
 			productRefGroup = 499971E12765FBC3001A3BF6 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -155,6 +165,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
@@ -269,6 +280,7 @@
 		499971F02765FBC4001A3BF6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = adventofCode/adventofCode.entitlements;
@@ -280,6 +292,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = adventofCode/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -307,6 +321,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = adventofCode/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -342,6 +358,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4928DF742770945F00327CD6 /* XCRemoteSwiftPackageReference "Matrix" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/disc0infern0/Matrix";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4928DF752770946000327CD6 /* Matrix */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4928DF742770945F00327CD6 /* XCRemoteSwiftPackageReference "Matrix" */;
+			productName = Matrix;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 499971D82765FBC3001A3BF6 /* Project object */;
 }

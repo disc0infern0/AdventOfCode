@@ -1,85 +1,197 @@
-
+// Advent of Code: Day Four
 import SwiftUI
+import Matrix
 
-// Advent of Code: Day Two
+var testData = false // set to 1 to use test data
 
-enum Direction: String, CaseIterable {
-   case forward, up, down
+// use a struct instead of overwriting the matrix value, when called, to a marker value, e.g. -1
 
-   static let allStrings: [String] = Direction.allCases.map { $0.rawValue }
+struct CellValue {
+   var value: Int
+   var called = false
 }
-struct Movement {
-   var direction: Direction
-   var amount: Int
+
+// For part two, keep track of what boards have been completed, so we can skip checking them.
+class Board {
+   var number: Int
+   var completed = false
+   var matrix: Matrix<CellValue>
+
+   init(number: Int, matrix: Matrix<CellValue>) {
+      self.number = number
+      self.matrix = matrix
+   }
 }
+
 struct ContentView: View {
-
    var body: some View {
-      let movements = transformPuzzleInput()
-      //       let answer = partOne(after: movements)
-      //       Text("The answer to part One is \(answer.x) x \(answer.y) = \(answer.x * answer.y)")
-      let answer = partTwo(after: movements)
-      Text("The answer to part Two is \(answer.x) x \(answer.y) = \(answer.x * answer.y)")
-         .padding()
-         .frame(minWidth:250, minHeight: 100)
+      let calls: [Int] = parseCalls(input: testData ? testCalls : puzzleCalls)
+      let boards = parseBoards(input: testData ? testBoards: puzzleBoards )
+
+      ScrollView {
+         VStack {
+            if let partOneAnswer = partOne(calls, boards) {
+               Text("Answers found !")
+               showBoard(board: partOneAnswer.board)
+               Text("last called: \(partOneAnswer.call) X \(sumUnmarked(partOneAnswer.board))")
+               Text(String("\(partOneAnswer.call * sumUnmarked(partOneAnswer.board))"))
+                  .textSelection(.enabled)
+            } else {
+               Text("Board not found")
+            }
+            if let partTwoAnswer = partTwo(calls, boards) {
+               Text("Answers found !")
+               showBoard(board: partTwoAnswer.board)
+               Text("last called: \(partTwoAnswer.call) X \(sumUnmarked(partTwoAnswer.board))")
+               Text(String("\(partTwoAnswer.call * sumUnmarked(partTwoAnswer.board))"))
+                  .textSelection(.enabled)
+            }
+         }
+      }
+		.frame(minWidth:250, minHeight: 100)
+   }
+
+}
+
+func sumUnmarked(_ board: Board) -> Int {
+   board.matrix.values.reduce(0) { i,j in j.called ? i : i+j.value}
+}
+struct showBoard: View {
+   var board: Board
+   var body: some View {
+      VStack {
+         Text("Board number: \(board.number)")
+         ForEach(0..<board.matrix.colLength) { i in
+            let row = board.matrix.row[i]
+            let tmp: [String] = row.map { c in
+               c.called ? "X" : String(c.value)
+            }
+            Text( tmp.asString() )
+               .font(.title).padding(2)
+         }
+
+      }
    }
 }
-func transformPuzzleInput() -> [Movement] {
-   var answer: [Movement] = []
-   var direction : Direction?
+
+
+func partOne(_ calls: [Int], _ boards: [Board]) -> (
+   call: Int, board: Board )? {
+   for call in calls {
+      for board in boards {
+         for row in 0...4 {
+            for column in 0...4 {
+               if board.matrix[row,column].value == call {
+                  board.matrix[row,column].called = true
+                  if hasBingo(board,row,column) {
+                     return (call: call,board: board)
+                  }
+               }
+            }
+         }
+      }
+   }
+   return nil
+}
+
+
+func partTwo(_ calls: [Int], _ boards: [Board]) -> (
+   call: Int, board: Board )? {
+      let boardCount = boards.count
+      var completedCount = 0
+      for call in calls {
+         for board in boards where board.completed == false {
+            for row in 0...4 {
+               for column in 0...4 {
+                  if board.matrix[row,column].value == call {
+                     board.matrix[row,column].called = true
+                     if hasBingo(board,row,column) {
+                        board.completed = true
+                        completedCount += 1
+                        if completedCount == boardCount {
+                           return (call: call, board: board)
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+      return nil
+   }
+
+
+func hasBingo(_ board: Board, _ row: Int, _ column: Int ) -> Bool {
+
+   func isLine(_ input: [CellValue]) -> Bool {
+      return  input.reduce(true) { i,j in i==true && j.called }
+   }
+   return isLine(board.matrix.row[row]) || isLine(board.matrix.column[column]) ? true : false
+}
+
+func parseCalls(input: String) -> [Int] {
+   var output: [Int] = []
    var tmp: String = ""
-   for char in puzzleInput {
-      let c = String(char)
-      if c == " " { continue }
-      if char == "\n" {
-         if let d = direction, let amount = Int(tmp) {
-            answer.append(Movement(direction: d, amount: amount))
-            tmp = ""
-            direction = nil
-            continue
-         }
-      }
-      tmp = tmp + c
-      if (direction==nil) {
-         if let _ = Direction.allStrings.firstIndex(of: tmp) {
-            direction = Direction(rawValue: tmp)
-            tmp = ""
-         }
+
+   for c in input {
+      if c == "\n" || c=="," {
+         if !tmp.isEmpty, let int = Int(tmp) { output.append(int) }
+         tmp = ""
+      } else {
+         tmp += String(c)
       }
    }
-   return answer
-}
-
-func partOne(after movements: [Movement]) -> (x: Int, y: Int) {
-   var x = 0
-   var y = 0
-   for movement in movements {
-      switch movement.direction {
-         case .up: y = y - movement.amount
-         case .down: y = y + movement.amount
-         case .forward: x = x + movement.amount
-      }
+   if !tmp.isEmpty, let i = Int(tmp) {
+      output.append(i)
    }
-   return (x,y)
+   return output
 }
 
-func partTwo(after movements: [Movement]) -> (x: Int, y: Int) {
-   var forward: Int = 0
-   var depth: Int = 0
-   var aim: Int = 0
-   for movement in movements {
-      switch movement.direction {
-         case .up: aim -= movement.amount
-         case .down: aim += movement.amount
-         case .forward:
-            forward += movement.amount
-            depth += aim * movement.amount
+
+func parseBoards(input: String) -> [Board] {
+   var returnArray: [Board] = []
+   let carriageReturn: Character = "\n"
+   var lastWasCR = false
+   var row:[CellValue] = []
+   var tmp: String = ""
+   var counter = 0
+
+   func addNumber() {
+      if !tmp.isEmpty, tmp != " ", let i = Int(tmp) {
+         row.append(CellValue(value: i))
       }
+      tmp = ""
    }
-   print(forward*depth)
-   return (forward, depth)
+
+   for c in input {
+      switch c {
+         case carriageReturn: //check if blank line, or just finished a line
+            if lastWasCR {
+               // blank line indicates end of input
+               addNumber()
+               returnArray.append(Board(number: counter, matrix: Matrix(row, rowLength: 5)))
+               counter += 1
+               row = []
+            } else {
+               addNumber()
+            }
+         case " ": // add number
+            addNumber()
+         default:
+            tmp += String(c)
+      }
+//      if c==carriageReturn { lastWasCR = true } else { lastWasCR = false }
+   	lastWasCR = (c==carriageReturn)
+   }
+   return returnArray
 }
 
+// String subscripts
+extension String {
+   subscript(i: Int) -> String {
+      return String(self[index(startIndex, offsetBy: i)])
+   }
+}
 
 struct ContentView_Previews: PreviewProvider {
    static var previews: some View {
