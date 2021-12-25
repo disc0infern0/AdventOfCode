@@ -1,190 +1,189 @@
-// Advent of Code: Day Four
+// Advent of Code: Day Five
 import SwiftUI
 import Matrix
 
-var testData = false // set to 1 to use test data
+var testData = false // set to true to use test data
 
 // use a struct instead of overwriting the matrix value, when called, to a marker value, e.g. -1
-
-struct CellValue {
-   var value: Int
-   var called = false
-}
-
-// For part two, keep track of what boards have been completed, so we can skip checking them.
-class Board {
-   var number: Int
-   var completed = false
-   var matrix: Matrix<CellValue>
-
-   init(number: Int, matrix: Matrix<CellValue>) {
-      self.number = number
-      self.matrix = matrix
+struct Point: Equatable {
+   var x: Int
+   var y: Int
+   init(_ x: Int, _ y: Int) {
+      self.x = x; self.y = y
    }
+
+   static var empty = Point(-1,-1)
+
+   var isEmpty: Bool {
+      self == Point.empty
+   }
+
+   static func ==(lhs: Point, rhs: Point) -> Bool {
+      lhs.x == rhs.x && lhs.y == rhs.y
+   }
+}
+struct Line {
+   var from: Point
+   var to: Point
 }
 
 struct ContentView: View {
    var body: some View {
-      let calls: [Int] = parseCalls(input: testData ? testCalls : puzzleCalls)
-      let boards = parseBoards(input: testData ? testBoards: puzzleBoards )
+      let lines: [Line] = parseLines(input: testData ? testLines : puzzleLines)
 
       ScrollView {
          VStack {
-            if let partOneAnswer = partOne(calls, boards) {
-               Text("Answers found !")
-               showBoard(board: partOneAnswer.board)
-               Text("last called: \(partOneAnswer.call) X \(sumUnmarked(partOneAnswer.board))")
-               Text(String("\(partOneAnswer.call * sumUnmarked(partOneAnswer.board))"))
-                  .textSelection(.enabled)
-            } else {
-               Text("Board not found")
-            }
-            if let partTwoAnswer = partTwo(calls, boards) {
-               Text("Answers found !")
-               showBoard(board: partTwoAnswer.board)
-               Text("last called: \(partTwoAnswer.call) X \(sumUnmarked(partTwoAnswer.board))")
-               Text(String("\(partTwoAnswer.call * sumUnmarked(partTwoAnswer.board))"))
-                  .textSelection(.enabled)
-            }
+            let partOneAnswer = partOne(lines)
+            Text("Lines overlapping: Part One: \(partOneAnswer) !")
+               .textSelection(.enabled)
+
+            let partTwoAnswer = partTwo(lines)
+            Text("Lines overlapping: Part Two: " + String(partTwoAnswer) )
+               .textSelection(.enabled)
          }
       }
 		.frame(minWidth:250, minHeight: 100)
    }
+}
+
+
+
+
+func partOne(_ lines: [Line]) -> Int {
+   var overlapped = 0
+   let arraySize = testData ? 10 : 1000
+   let row = Array(repeating: 0, count: arraySize)
+   var grid = Array(repeating: row, count: arraySize)
+
+   func markGridPosition(row: Int, column: Int) {
+      if grid[row][column] == 1 {
+         overlapped += 1
+      }
+      grid[row][column] += 1
+   }
+
+   func order(_ line: Line) -> (start: Point, end: Point) {
+      line.from.x < line.to.x || line.from.y < line.to.y ? (start: line.from, end: line.to) : (start: line.to, end: line.from)
+   }
+
+   for line in lines where line.from.x == line.to.x || line.from.y == line.to.y {
+      // get orderd pair of start/end points, such that start point can
+      // be iterated on up to end point.
+      let (start, end) = order(line)
+      // plot line on grid
+      let addColumn = line.from.x == line.to.x ? 0 : 1
+      let addRow = line.from.y == line.to.y ? 0 : 1
+      var current = start
+      repeat {
+         markGridPosition( row: current.y, column: current.x )
+         current.x += addColumn
+         current.y += addRow
+      } while (current.x <= end.x && current.y <= end.y)
+   }
+//   print("Final grid")
+//   for row in grid { print(row.reduce("") { j,i in i==0 ? j+"." : j+String(i)}) }
+
+   return overlapped
 
 }
 
-func sumUnmarked(_ board: Board) -> Int {
-   board.matrix.values.reduce(0) { i,j in j.called ? i : i+j.value}
-}
-struct showBoard: View {
-   var board: Board
-   var body: some View {
-      VStack {
-         Text("Board number: \(board.number)")
-         ForEach(0..<board.matrix.colLength) { i in
-            let row = board.matrix.row[i]
-            let tmp: [String] = row.map { c in
-               c.called ? "X" : String(c.value)
-            }
-            Text( tmp.asString() )
-               .font(.title).padding(2)
+func partTwo(_ lines: [Line]) -> Int {
+   var overlapped = 0
+   let arraySize = testData ? 10 : 1000
+   let row = Array(repeating: 0, count: arraySize)
+   var grid = Array(repeating: row, count: arraySize)
+
+   func markGridPosition(row: Int, column: Int) {
+      if grid[row][column] == 1 {
+         overlapped += 1
+      }
+      grid[row][column] += 1
+   }
+
+   for line in lines {
+      print("from \(line.from.x),\(line.from.y) to \(line.to.x),\(line.to.y)")
+      var columnIncrement = 0
+      var rowIncrement = 0
+
+      // plot line on grid
+      if line.from.x == line.to.x { columnIncrement = 0} else {
+         if line.to.x > line.from.x { columnIncrement = 1 } else {
+            columnIncrement = -1
          }
-
       }
-   }
-}
-
-
-func partOne(_ calls: [Int], _ boards: [Board]) -> (
-   call: Int, board: Board )? {
-   for call in calls {
-      for board in boards {
-         for row in 0...4 {
-            for column in 0...4 {
-               if board.matrix[row,column].value == call {
-                  board.matrix[row,column].called = true
-                  if hasBingo(board,row,column) {
-                     return (call: call,board: board)
-                  }
-               }
-            }
+      if line.from.y == line.to.y { rowIncrement = 0} else {
+         if line.to.y > line.from.y { rowIncrement = 1 } else {
+            rowIncrement = -1
          }
       }
+      print(" starting at \(line.from.x), \(line.from.y) ")
+      print("adding to columns: \(columnIncrement)")
+      print("adding to rows: \(rowIncrement)")
+
+      func pointIsOnLine() -> Bool {
+         current.x.isBetween(line.from.x, line.to.x) &&
+         current.y.isBetween(line.from.y, line.to.y )
+      }
+      var current = line.from
+      repeat {
+         markGridPosition( row: current.y, column: current.x )
+         current.x += columnIncrement
+         current.y += rowIncrement
+      } while (pointIsOnLine() )
    }
-   return nil
+      print("Final grid")
+      for row in grid { print(row.reduce("") { j,i in i==0 ? j+"." : j+String(i)}) }
+
+   return overlapped
+
 }
 
+extension Comparable  {
+   func isBetween (_ value1: Self, _ value2: Self) -> Bool {
+      let lower = min(value1,value2)
+      let upper = max(value1,value2)
+      return lower <= self  && self <= upper
+   }
+}
 
-func partTwo(_ calls: [Int], _ boards: [Board]) -> (
-   call: Int, board: Board )? {
-      let boardCount = boards.count
-      var completedCount = 0
-      for call in calls {
-         for board in boards where board.completed == false {
-            for row in 0...4 {
-               for column in 0...4 {
-                  if board.matrix[row,column].value == call {
-                     board.matrix[row,column].called = true
-                     if hasBingo(board,row,column) {
-                        board.completed = true
-                        completedCount += 1
-                        if completedCount == boardCount {
-                           return (call: call, board: board)
-                        }
-                     }
-                  }
-               }
+func parseLines(input: String) -> [Line] {
+   var output: [Line] = []
+   let carriageReturn: Character = "\n"
+
+   var first: Point = .empty
+   var second: Point = .empty
+	var tmp = 0
+
+   for char in input {
+      switch char {
+      case carriageReturn:
+            second.y = tmp; tmp = 0
+            output.append(Line(from: first, to: second))
+            first = .empty; second = .empty
+            break
+      case ",":
+            if first.isEmpty {
+               first.x = tmp; tmp = 0
+            } else {
+               second.x = tmp; tmp = 0
             }
-         }
-      }
-      return nil
-   }
-
-
-func hasBingo(_ board: Board, _ row: Int, _ column: Int ) -> Bool {
-
-   func isLine(_ input: [CellValue]) -> Bool {
-      return  input.reduce(true) { i,j in i==true && j.called }
-   }
-   return isLine(board.matrix.row[row]) || isLine(board.matrix.column[column]) ? true : false
-}
-
-func parseCalls(input: String) -> [Int] {
-   var output: [Int] = []
-   var tmp: String = ""
-
-   for c in input {
-      if c == "\n" || c=="," {
-         if !tmp.isEmpty, let int = Int(tmp) { output.append(int) }
-         tmp = ""
-      } else {
-         tmp += String(c)
+            break
+      case "-":
+            first.y = tmp; tmp = 0
+            break
+      case " ",">":
+            break
+      default:
+            if let i = Int(String(char)) {
+            	tmp = tmp*10 + i
+            }
       }
    }
-   if !tmp.isEmpty, let i = Int(tmp) {
-      output.append(i)
-   }
+
    return output
 }
 
 
-func parseBoards(input: String) -> [Board] {
-   var returnArray: [Board] = []
-   let carriageReturn: Character = "\n"
-   var lastWasCR = false
-   var row:[CellValue] = []
-   var tmp: String = ""
-   var counter = 0
-
-   func addNumber() {
-      if !tmp.isEmpty, tmp != " ", let i = Int(tmp) {
-         row.append(CellValue(value: i))
-      }
-      tmp = ""
-   }
-
-   for c in input {
-      switch c {
-         case carriageReturn: //check if blank line, or just finished a line
-            if lastWasCR {
-               // blank line indicates end of input
-               addNumber()
-               returnArray.append(Board(number: counter, matrix: Matrix(row, rowLength: 5)))
-               counter += 1
-               row = []
-            } else {
-               addNumber()
-            }
-         case " ": // add number
-            addNumber()
-         default:
-            tmp += String(c)
-      }
-//      if c==carriageReturn { lastWasCR = true } else { lastWasCR = false }
-   	lastWasCR = (c==carriageReturn)
-   }
-   return returnArray
-}
 
 // String subscripts
 extension String {
