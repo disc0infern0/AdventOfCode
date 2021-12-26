@@ -1,43 +1,25 @@
 // Advent of Code: Day Five
 import SwiftUI
 
-var testData = true // set to true to use test data
+var useTestData = true
+//var useTestData = false
 
-// use a struct instead of overwriting the matrix value, when called, to a marker value, e.g. -1
-struct Point: Equatable {
-   var x: Int
-   var y: Int
-   init(_ x: Int, _ y: Int) {
-      self.x = x; self.y = y
-   }
-
-   static var empty = Point(-1,-1)
-
-   var isEmpty: Bool {
-      self == Point.empty
-   }
-
-   static func ==(lhs: Point, rhs: Point) -> Bool {
-      lhs.x == rhs.x && lhs.y == rhs.y
-   }
-}
-struct Line {
-   var from: Point
-   var to: Point
-}
 
 struct ContentView: View {
+   @StateObject private var fishCounter = CountFish()
+   @State private var days: Int = 0
+   @State private var stringDays: String = "8"
    var body: some View {
-      let lines: [Line] = parseLines(input: testData ? testLines : puzzleLines)
-
       ScrollView {
          VStack {
-            let partOneAnswer = partOne(lines)
-            Text("Lines overlapping: Part One: \(partOneAnswer) !")
-               .textSelection(.enabled)
-
-            let partTwoAnswer = partTwo(lines)
-            Text("Lines overlapping: Part Two: " + String(partTwoAnswer) )
+            Text("\nFish Counter!! \n")
+            TextField("enter days", text: $stringDays )
+               .padding(20)
+               .onSubmit {
+                  days = Int(stringDays) ?? 0
+                  fishCounter.calculatePopulationAfter(days: days)
+               }
+            Text("Fish population :  \(fishCounter.count)")
                .textSelection(.enabled)
          }
       }
@@ -45,74 +27,114 @@ struct ContentView: View {
    }
 }
 
-func partOne(_ lines: [Line]) -> Int {
-   var overlapped = 0
-   let arraySize = testData ? 10 : 1000
-   let row = Array(repeating: 0, count: arraySize)
-   var grid = Array(repeating: row, count: arraySize)
+class Fish {
+   var timer: Int
+   var next: Fish?
+   var new: Bool = false
 
-   for line in lines where line.from.x == line.to.x || line.from.y == line.to.y {
-      overlapped += countOverlaps(in: line, on: &grid)
-   }
-   print("Part One")
-   printGrid(grid)
-   return overlapped
-}
-
-func printGrid(_ grid: [[Int]]) {
-   print("Final grid")
-   for (counter, row) in grid.enumerated() {
-      print("\(counter+1)\t\t", terminator: "")
-      print(row.reduce("") { j,i in i==0 ? j+"." : j+String(i) })
-   }
-}
-
-func countOverlaps(in line: Line, on grid: inout [[Int]]) -> Int {
-   var overlapped = 0
-
-   func markGridPosition(row: Int, column: Int) {
-      if grid[row][column] == 1 {
-         overlapped += 1
+   init(timer: Int){
+      self.timer = timer
+      if timer == 8 {
+         self.new = true
       }
-      grid[row][column] += 1
    }
-   func calcIncrementor(_ from: Int, _ to: Int) -> Int {
-      if from == to { return 0} else {
-         if to > from { return 1 } else {
-            return -1
+}
+
+
+class CountFish: ObservableObject {
+   @Published var count: Int = 0
+
+	var firstFish: Fish?
+	var lastFish: Fish?
+
+   func printFish() {
+      var currentFish = firstFish
+      print("Current Fish...")
+      while currentFish != nil {
+         print(String(currentFish!.timer), terminator: "")
+         currentFish = currentFish?.next
+      }
+      print("\n")
+   }
+
+   func calculatePopulationAfter(days: Int)  {
+      count = 0
+      firstFish = nil
+      lastFish = nil
+      parseLines(input: useTestData ? testData : puzzleData )
+      guard days > 0 else { return }
+      var currentFish: Fish?
+      for day in 1...days {
+         currentFish = firstFish
+         while currentFish != nil {
+            switch currentFish!.timer {
+               case 0:
+                  newFish()
+                  currentFish!.timer = 6
+               case 1,2,3,4,5,6,7:
+                  currentFish!.timer -= 1
+               case 8:
+                  if currentFish!.new {
+                     currentFish!.new = false
+                  } else {
+                     currentFish!.timer -= 1
+                  }
+               default: fatalError("Timer too large")
+            }
+            currentFish = currentFish!.next
+         }
+         print("After Day \(day), the count is : \(count)")
+         if day < 50 {
+            printFish()
+         }
+      }
+      deleteFish()
+   }
+
+   func deleteFish() {
+      var currentFish = firstFish
+      while currentFish != nil {
+         if let nextFish = currentFish?.next {
+            currentFish = nil
+            currentFish = nextFish
+         } else {
+            currentFish = nil
          }
       }
    }
-   func pointIsOnLine() -> Bool {
-      current.x.isBetween(line.from.x, line.to.x) &&
-      current.y.isBetween(line.from.y, line.to.y )
-   }
-   // plot line on grid
-   var current = line.from
-   let columnIncrement = calcIncrementor(line.from.x, line.to.x)
-   let rowIncrement = calcIncrementor(line.from.y, line.to.y)
-   repeat {
-      markGridPosition( row: current.y, column: current.x )
-      current.x += columnIncrement
-      current.y += rowIncrement
-   } while (pointIsOnLine() )
 
-   return overlapped
+   func parseLines(input: String) {
+      for c in input where c != "," {
+         newFish(timer: Int(String(c))!)
+      }
+   }
+
+   func newFish(timer: Int = 8) {
+      var currentFish = lastFish
+      let new = Fish(timer: timer)
+      count += 1
+      if currentFish == nil {
+         currentFish = new
+         firstFish = new
+      } else {
+         currentFish?.next = new
+         currentFish = new
+      }
+      lastFish = currentFish
+   }
+
 }
 
-func partTwo(_ lines: [Line]) -> Int {
-   var overlapped = 0
-   let arraySize = testData ? 10 : 1000
-   let row = Array(repeating: 0, count: arraySize)
-   var grid = Array(repeating: row, count: arraySize)
 
-   for line in lines {
- 		overlapped += countOverlaps(in: line, on: &grid)
-   }
-   print("\nPart Two")
-   printGrid(grid)
-   return overlapped
-}
+
+//func printFish(_ fish: [Fish]) {
+//   _ = fish.map { f in
+//      print("\(f.timer),", terminator: "" )
+//   }
+//   print("")
+//}
+
+
 
 extension Comparable  {
    func isBetween (_ value1: Self, _ value2: Self) -> Bool {
@@ -122,42 +144,7 @@ extension Comparable  {
    }
 }
 
-func parseLines(input: String) -> [Line] {
-   var output: [Line] = []
-   let carriageReturn: Character = "\n"
 
-   var first: Point = .empty
-   var second: Point = .empty
-	var tmp = 0
-
-   for char in input {
-      switch char {
-      case carriageReturn:
-            second.y = tmp; tmp = 0
-            output.append(Line(from: first, to: second))
-            first = .empty; second = .empty
-            break
-      case ",":
-            if first.isEmpty {
-               first.x = tmp; tmp = 0
-            } else {
-               second.x = tmp; tmp = 0
-            }
-            break
-      case "-":
-            first.y = tmp; tmp = 0
-            break
-      case " ",">":
-            break
-      default:
-            if let i = Int(String(char)) {
-            	tmp = tmp*10 + i
-            }
-      }
-   }
-
-   return output
-}
 
 
 
