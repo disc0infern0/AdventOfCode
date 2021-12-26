@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4928DF762770946000327CD6 /* Matrix in Frameworks */ = {isa = PBXBuildFile; productRef = 4928DF752770946000327CD6 /* Matrix */; };
 		499971E42765FBC3001A3BF6 /* adventofCodeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499971E32765FBC3001A3BF6 /* adventofCodeApp.swift */; };
 		499971E62765FBC3001A3BF6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499971E52765FBC3001A3BF6 /* ContentView.swift */; };
 		499971E82765FBC4001A3BF6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 499971E72765FBC4001A3BF6 /* Assets.xcassets */; };
@@ -31,7 +30,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4928DF762770946000327CD6 /* Matrix in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -93,7 +91,6 @@
 			);
 			name = adventofCode;
 			packageProductDependencies = (
-				4928DF752770946000327CD6 /* Matrix */,
 			);
 			productName = adventofCode;
 			productReference = 499971E02765FBC3001A3BF6 /* adventofCode.app */;
@@ -124,7 +121,6 @@
 			);
 			mainGroup = 499971D72765FBC3001A3BF6;
 			packageReferences = (
-				4928DF742770945F00327CD6 /* XCRemoteSwiftPackageReference "Matrix" */,
 			);
 			productRefGroup = 499971E12765FBC3001A3BF6 /* Products */;
 			projectDirPath = "";
@@ -358,25 +354,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		4928DF742770945F00327CD6 /* XCRemoteSwiftPackageReference "Matrix" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/disc0infern0/Matrix";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		4928DF752770946000327CD6 /* Matrix */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 4928DF742770945F00327CD6 /* XCRemoteSwiftPackageReference "Matrix" */;
-			productName = Matrix;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 499971D82765FBC3001A3BF6 /* Project object */;
 }
