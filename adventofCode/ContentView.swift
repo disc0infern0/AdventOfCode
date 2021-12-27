@@ -19,7 +19,7 @@ struct ContentView: View {
                   days = Int(stringDays) ?? 0
                   fishCounter.calculatePopulationAfter(days: days)
                }
-            Text("Fish population :  \(fishCounter.count)")
+            Text("Fish population :  \(String(fishCounter.count))")
                .textSelection(.enabled)
          }
       }
@@ -27,136 +27,44 @@ struct ContentView: View {
    }
 }
 
-class Fish {
-   var timer: Int
-   var next: Fish?
-   var new: Bool = false
-
-   init(timer: Int){
-      self.timer = timer
-      if timer == 8 {
-         self.new = true
-      }
-   }
-}
-
+let Timers = [1,2,3,4,5,6,7,8,0]
+typealias FishKey = Int
+typealias FishValue = Int
+typealias FishTimerDict = [FishKey: FishValue]
 
 class CountFish: ObservableObject {
    @Published var count: Int = 0
 
-	var firstFish: Fish?
-	var lastFish: Fish?
-
-   func printFish() {
-      var currentFish = firstFish
-      print("Current Fish...")
-      while currentFish != nil {
-         print(String(currentFish!.timer), terminator: "")
-         currentFish = currentFish?.next
-      }
-      print("\n")
-   }
-
    func calculatePopulationAfter(days: Int)  {
       count = 0
-      firstFish = nil
-      lastFish = nil
-      parseLines(input: useTestData ? testData : puzzleData )
       guard days > 0 else { return }
-      var currentFish: Fish?
-      for day in 1...days {
-         currentFish = firstFish
-         while currentFish != nil {
-            switch currentFish!.timer {
+      var fish = parseInput(input: useTestData ? testData : puzzleData )
+      for _ in 1...days {
+         var fishAtEndofDay: FishTimerDict! = [:]
+         for timer in Timers where fish[timer] ?? 0  > 0 {
+            switch timer {
+               case 1,2,3,4,5,6,7,8:
+                     fishAtEndofDay[timer-1] = fish[timer]
                case 0:
-                  newFish()
-                  currentFish!.timer = 6
-               case 1,2,3,4,5,6,7:
-                  currentFish!.timer -= 1
-               case 8:
-                  if currentFish!.new {
-                     currentFish!.new = false
-                  } else {
-                     currentFish!.timer -= 1
-                  }
-               default: fatalError("Timer too large")
+                  fishAtEndofDay[8] = fish[0]!
+                  fishAtEndofDay[6] = (fishAtEndofDay[6] ?? 0) + fish[0]!
+               default: break
             }
-            currentFish = currentFish!.next
          }
-         print("After Day \(day), the count is : \(count)")
-         if day < 50 {
-            printFish()
-         }
+         fish = fishAtEndofDay
+         // show(fish)
       }
-      deleteFish()
+      count = fish.values.reduce(0,+)
    }
 
-   func deleteFish() {
-      var currentFish = firstFish
-      while currentFish != nil {
-         if let nextFish = currentFish?.next {
-            currentFish = nil
-            currentFish = nextFish
-         } else {
-            currentFish = nil
-         }
+   func parseInput(input: String) -> FishTimerDict {
+      Dictionary(uniqueKeysWithValues: zip(0...8, (0...8).map{ k in input.filter{$0 != ","}.map{Int(String($0))!}.filter{$0==k}.count } ))
+   }
+
+   func show(_ fish: FishTimerDict) {
+      for t in 0...8 {
+         print(String(fish[t] ?? 0), terminator: ".")
       }
-   }
-
-   func parseLines(input: String) {
-      for c in input where c != "," {
-         newFish(timer: Int(String(c))!)
-      }
-   }
-
-   func newFish(timer: Int = 8) {
-      var currentFish = lastFish
-      let new = Fish(timer: timer)
-      count += 1
-      if currentFish == nil {
-         currentFish = new
-         firstFish = new
-      } else {
-         currentFish?.next = new
-         currentFish = new
-      }
-      lastFish = currentFish
-   }
-
-}
-
-
-
-//func printFish(_ fish: [Fish]) {
-//   _ = fish.map { f in
-//      print("\(f.timer),", terminator: "" )
-//   }
-//   print("")
-//}
-
-
-
-extension Comparable  {
-   func isBetween (_ value1: Self, _ value2: Self) -> Bool {
-      let lower = min(value1,value2)
-      let upper = max(value1,value2)
-      return lower <= self  && self <= upper
-   }
-}
-
-
-
-
-
-// String subscripts
-extension String {
-   subscript(i: Int) -> String {
-      return String(self[index(startIndex, offsetBy: i)])
-   }
-}
-
-struct ContentView_Previews: PreviewProvider {
-   static var previews: some View {
-      ContentView()
+      print("")
    }
 }
