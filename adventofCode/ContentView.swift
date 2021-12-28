@@ -1,70 +1,79 @@
-// Advent of Code: Day Five
+// Advent of Code: Day Seven
 import SwiftUI
 
-var useTestData = true
-//var useTestData = false
-
-
 struct ContentView: View {
-   @StateObject private var fishCounter = CountFish()
-   @State private var days: Int = 0
-   @State private var stringDays: String = "8"
+   @StateObject private var crabShuffler = ShuffleCrabs()
+
    var body: some View {
       ScrollView {
          VStack {
-            Text("\nFish Counter!! \n")
-            TextField("enter days", text: $stringDays )
-               .padding(20)
-               .onSubmit {
-                  days = Int(stringDays) ?? 0
-                  fishCounter.calculatePopulationAfter(days: days)
-               }
-            Text("Fish population :  \(String(fishCounter.count))")
-               .textSelection(.enabled)
+            Text("\nCrab Shuffler!! \n")
+            Toggle("Use test data?", isOn: $crabShuffler.useTestData)
+               .tint(Color.accentColor)
+            Text("")
+            Button("Calculate part One answer") {
+               crabShuffler.calculatePosition(forPartOne: true )
+            }
+            .buttonStyle(.borderedProminent)
+            Button("Calculate part Two answer") {
+               crabShuffler.calculatePosition(forPartOne: false)
+            }
+            .buttonStyle(.borderedProminent)
+            if crabShuffler.bestPosition > -1 {
+               Text("Best position :  \(String(crabShuffler.bestPosition))")
+               Text("with a fuel cost of :  \(String(crabShuffler.fuel))")
+                  .textSelection(.enabled)
+            }
          }
       }
-		.frame(minWidth:250, minHeight: 100)
+      .frame(minWidth:250, maxWidth: .infinity, minHeight: 100 )
    }
 }
 
-let Timers = [1,2,3,4,5,6,7,8,0]
-typealias FishKey = Int
-typealias FishValue = Int
-typealias FishTimerDict = [FishKey: FishValue]
+class ShuffleCrabs: ObservableObject {
+   @Published var useTestData: Bool = true
+   @Published var forPartOne: Bool = true
+   
+   @Published var bestPosition: Int = -1
+   @Published var fuel: Int = 0
 
-class CountFish: ObservableObject {
-   @Published var count: Int = 0
+   var positions: [Int] = []
 
-   func calculatePopulationAfter(days: Int)  {
-      count = 0
-      guard days > 0 else { return }
-      var fish = parseInput(input: useTestData ? testData : puzzleData )
-      for _ in 1...days {
-         var fishAtEndofDay: FishTimerDict! = [:]
-         for timer in Timers where fish[timer] ?? 0  > 0 {
-            switch timer {
-               case 1,2,3,4,5,6,7,8:
-                     fishAtEndofDay[timer-1] = fish[timer]
-               case 0:
-                  fishAtEndofDay[8] = fish[0]!
-                  fishAtEndofDay[6] = (fishAtEndofDay[6] ?? 0) + fish[0]!
-               default: break
-            }
-         }
-         fish = fishAtEndofDay
-         // show(fish)
+   func calculatePosition(forPartOne: Bool)  {
+      var fuelCalculator: (Int) -> Int
+      if forPartOne {
+         fuelCalculator = calcFuelPart1 }
+      else {
+         fuelCalculator = calcFuelPart2
       }
-      count = fish.values.reduce(0,+)
-   }
 
-   func parseInput(input: String) -> FishTimerDict {
-      Dictionary(uniqueKeysWithValues: zip(0...8, (0...8).map{ k in input.filter{$0 != ","}.map{Int(String($0))!}.filter{$0==k}.count } ))
-   }
+      positions = parseInput(input: useTestData ? testData : puzzleData )
+      let min = positions.min() ?? 0
+      let max = positions.max() ?? 0
 
-   func show(_ fish: FishTimerDict) {
-      for t in 0...8 {
-         print(String(fish[t] ?? 0), terminator: ".")
+      bestPosition = -1
+      var lastFuel = fuelCalculator(min)
+      print("min position fuel \(lastFuel)")
+      for position in min+1...max {
+         fuel = fuelCalculator(position)
+         if fuel > lastFuel { break }
+         lastFuel = fuel
+         bestPosition = position
       }
-      print("")
+      fuel = lastFuel
    }
+
+   func calcFuelPart1(_ point: Int) -> Int{
+      positions.reduce(0) {rolling,next in
+         abs(next-point)+rolling }
+   }
+   func calcFuelPart2(_ point: Int) -> Int{
+      positions.reduce(0) {rolling,next in
+         ((abs(next-point)*(abs(next-point)+1))/2) + rolling }
+   }
+
+   func parseInput(input: String) -> [Int] {
+      input.components(separatedBy: ",").map{ Int(String($0))! }.sorted()
+   }
+
 }
