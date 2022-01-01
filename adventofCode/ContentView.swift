@@ -1,4 +1,4 @@
-// Advent of Code: Day 9: Smoke Basin
+// Advent of Code: Day 10: Syntax
 import SwiftUI
 
 struct ContentView: View {
@@ -7,7 +7,7 @@ struct ContentView: View {
    var body: some View {
       ScrollView {
          VStack {
-         	Text("\n--- Day 9: Smoke Basin ---\n\n")
+         	Text("\n--- Day 10: Syntax ---\n\n")
             if advent.useTestData {
                Text("<<<<<<Using test data>>>>>\n")
             } else {
@@ -43,89 +43,80 @@ class AdventOfCode: ObservableObject {
    @Published var partOne: Int = 0
    @Published var partTwo: Int = 0
    var input: String { useTestData ? testData : puzzleData }
-   var data: [[Int]] = []
+   var data: [String] = []
 
-   struct Point: Hashable {
-      var x: Int
-      var y: Int
-      init(x: Int, y: Int) {
-         self.x = x; self.y = y
+   let corruptScores: [Character: Int]! = [")":3, "]":57 , "}":1197, ">":25137 ]
+   let incompleteScores: [Character: Int]! = [")":1, "]":2 , "}":3, ">":4 ]
+   let openers: Set<Character> = Set("({[<")
+   let closers: [Character:Character]! = [ "(":")", "[":"]", "{":"}", "<":">" ]
+
+   struct Stack<Element> {
+      var items: [Element] = []
+      mutating func push(_ item: Element) {
+         items.append(item)
       }
-      init(_ x: Int, _ y: Int) {
-         self.x = x; self.y = y
+      mutating func pop() -> Element {
+         return items.removeLast()
       }
    }
-   enum Locations: CaseIterable { case up, down, left, right }
+   enum lineType { case corrupt(Int), incomplete(Int), ok }
 
-   func next(_ point: Point, along location: Locations ) -> Point? {
-      var next: Point?
-      switch location {
-         case .up: if point.y>0 { next = Point(point.x, point.y - 1) }
-         case .left: if point.x>0 { next = Point(point.x - 1, point.y) }
-         case .right: if (point.x)+1 != data[point.y].count { next = Point(point.x + 1,point.y) }
-         case .down: if (point.y)+1 != data.count { next = Point(point.x,point.y + 1) }
-      }
-      return next
+   func solvePartOne() {
+      loadData()
+      partOne = data.map {
+         switch(getLineType(line:$0)) {
+         case .corrupt(let score): return score
+         default: return 0
+      	}
+      }.reduce(0,+)
    }
 
-   func dataAt(_ point: Point, direction: Locations? = nil ) -> Int {
-      if direction == nil {
-         return data[point.y][point.x]
-      } else {
-         if let p = next(point, along: direction!) {
-            return data[p.y][p.x]
+
+   func getLineType(line: String) -> lineType {
+      var stack = Stack<Character>()
+      print(line)
+      for c in line {
+         if openers.contains(c) {
+            stack.push(c)
          } else {
-            return 9
-         }
-      }
-   }
-
-   func allNeighboursHigher(point: Point) -> Bool {
-      Locations.allCases.reduce(true) { $0 && dataAt(point) < dataAt(point, direction: $1) }
-   }
-
-   func getLowPoints() -> [Point] {
-   	var lowPoints: [Point] = []
-      for y in 0...data.count-1 {
-         for x in 0...data[y].count-1 {
-            let p = Point(x:x,y:y)
-            if allNeighboursHigher(point: p) {
-               lowPoints.append(p)
+            let pop = stack.pop()
+            if c == closers[pop] {
+               // nothing to do
+            } else {
+               print("no match ==> Corrupt. Read \(String(c)) expected: \(String(pop))")
+               // corrupt
+               let score = corruptScores[c]
+               return .corrupt(score!)
             }
          }
       }
-      return lowPoints
-   }
-
-   func solvePartOne() {
-      parseInput()
-      partOne = getLowPoints().reduce(0){$0+dataAt($1)+1}
-   }
-
-   func solvePartTwo() {
-      let s = getLowPoints().map { getBasinSize(at: $0) }.sorted(by: >)
-      guard s.count >= 3 else { print("no solution"); return}
-      partTwo = s[0]*s[1]*s[2]
-   }
-
-   // We don't need all the basin points, just it's total size
-   func getBasinSize(at point: Point) -> Int {
-      var basinSize = 0
-      func check(point: Point) {
-         guard dataAt(point) != 9 else {return}
-         basinSize += 1
-         data[point.y][point.x] = 9 // don't retrace steps
-         for direction in Locations.allCases {
-            if let nxt = next(point, along: direction) { check(point: nxt) }
+      if stack.items.count > 0 {
+         var score = 0
+         while ( stack.items.count > 0) {
+            let c = closers[stack.pop()]!
+            print( "scoring: \(String(c))")
+            score = score*5 + incompleteScores[c]!
          }
+         print("incomplete (\(score))")
+         return .incomplete(score)
+      } else {
+         print("all ok!")
+         return .ok
       }
-      check(point: point)
-      return basinSize
+   }
+   func solvePartTwo() {
+      loadData()
+      let incompletes = data.map { line -> Int in
+         switch(getLineType(line: line)) {
+            case .incomplete(let score): return score
+            default: return 0
+         }
+      }.filter { $0 != 0 }.sorted()
+      print(incompletes)
+      partTwo = incompletes[incompletes.count/2]
    }
 
-   func parseInput() {
-      data = input.components(separatedBy: "\n").map { line in
-         line.map{Int(String($0))!}
-      }
+   func loadData() {
+      data = input.components(separatedBy: "\n")
    }
 }
