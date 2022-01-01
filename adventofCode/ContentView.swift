@@ -44,49 +44,83 @@ class AdventOfCode: ObservableObject {
    @Published var partTwo: Int = 0
    var input: String { useTestData ? testData : puzzleData }
    var data: [[Int]] = []
-   struct Point {
+
+   struct Point: Hashable {
       var x: Int
       var y: Int
+      init(x: Int, y: Int) {
+         self.x = x; self.y = y
+      }
+      init(_ x: Int, _ y: Int) {
+         self.x = x; self.y = y
+      }
    }
-   var point: Point = Point(x:0,y:0)
-   var dataPoint: Int { data[point.y][point.x] }
    enum Locations: CaseIterable { case up, down, left, right }
 
+   func next(_ point: Point, along location: Locations ) -> Point? {
+      var next: Point?
+      switch location {
+         case .up: if point.y>0 { next = Point(point.x, point.y - 1) }
+         case .left: if point.x>0 { next = Point(point.x - 1, point.y) }
+         case .right: if (point.x)+1 != data[point.y].count { next = Point(point.x + 1,point.y) }
+         case .down: if (point.y)+1 != data.count { next = Point(point.x,point.y + 1) }
+      }
+      return next
+   }
+
    func dataAt(_ point: Point, direction: Locations? = nil ) -> Int {
-      if let location = direction {
-         switch location {
-            case .up: if point.y==0 { return 9} else { return data[point.y - 1][point.x] }
-            case .left: if point.x==0 { return 9} else { return data[point.y][point.x - 1] }
-            case .right: if point.x+1 == data[point.y].count { return 9} else { return data[point.y][point.x + 1] }
-            case .down: if point.y+1 == data.count { return 9} else { return data[point.y + 1][point.x] }
-         }
-      } else {
+      if direction == nil {
          return data[point.y][point.x]
-      }
-   }
-   func solvePartOne() {
-      parseInput()
-      partOne = 0
-      var lowPoints: [Int] = []
-      for y in 0...data.count-1 {
-         for x in 0...data[y].count-1 {
-            point = Point(x:x,y:y)
-            if allNeighboursHigher(point: point) {
-               lowPoints.append(dataAt(point))
-            }
+      } else {
+         if let p = next(point, along: direction!) {
+            return data[p.y][p.x]
+         } else {
+            return 9
          }
       }
-      partOne = lowPoints.reduce(0){$0+$1+1}
    }
-
-
 
    func allNeighboursHigher(point: Point) -> Bool {
       Locations.allCases.reduce(true) { $0 && dataAt(point) < dataAt(point, direction: $1) }
    }
-   func solvePartTwo() {
+
+   func getLowPoints() -> [Point] {
+   	var lowPoints: [Point] = []
+      for y in 0...data.count-1 {
+         for x in 0...data[y].count-1 {
+            let p = Point(x:x,y:y)
+            if allNeighboursHigher(point: p) {
+               lowPoints.append(p)
+            }
+         }
+      }
+      return lowPoints
+   }
+
+   func solvePartOne() {
       parseInput()
-      partTwo = 0
+      partOne = getLowPoints().reduce(0){$0+dataAt($1)+1}
+   }
+
+   func solvePartTwo() {
+      let s = getLowPoints().map { getBasinSize(at: $0) }.sorted(by: >)
+      guard s.count >= 3 else { print("no solution"); return}
+      partTwo = s[0]*s[1]*s[2]
+   }
+
+   // We don't need all the basin points, just it's total size
+   func getBasinSize(at point: Point) -> Int {
+      var basinSize = 0
+      func check(point: Point) {
+         guard dataAt(point) != 9 else {return}
+         basinSize += 1
+         data[point.y][point.x] = 9 // don't retrace steps
+         for direction in Locations.allCases {
+            if let nxt = next(point, along: direction) { check(point: nxt) }
+         }
+      }
+      check(point: point)
+      return basinSize
    }
 
    func parseInput() {
