@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4981FD6C2781D50A000137B4 /* AdventofCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4981FD6B2781D50A000137B4 /* AdventofCode.swift */; };
 		499971E42765FBC3001A3BF6 /* adventofCodeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499971E32765FBC3001A3BF6 /* adventofCodeApp.swift */; };
 		499971E62765FBC3001A3BF6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499971E52765FBC3001A3BF6 /* ContentView.swift */; };
 		499971E82765FBC4001A3BF6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 499971E72765FBC4001A3BF6 /* Assets.xcassets */; };
@@ -16,6 +17,7 @@
 
 /* Begin PBXFileReference section */
 		4928DF782770973300327CD6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		4981FD6B2781D50A000137B4 /* AdventofCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdventofCode.swift; sourceTree = "<group>"; };
 		499971E02765FBC3001A3BF6 /* adventofCode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = adventofCode.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		499971E32765FBC3001A3BF6 /* adventofCodeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = adventofCodeApp.swift; sourceTree = "<group>"; };
 		499971E52765FBC3001A3BF6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -58,6 +60,7 @@
 				4928DF782770973300327CD6 /* Info.plist */,
 				499971E32765FBC3001A3BF6 /* adventofCodeApp.swift */,
 				499971E52765FBC3001A3BF6 /* ContentView.swift */,
+				4981FD6B2781D50A000137B4 /* AdventofCode.swift */,
 				499971F427663CFB001A3BF6 /* PuzzleInput.swift */,
 				499971E72765FBC4001A3BF6 /* Assets.xcassets */,
 				499971EC2765FBC4001A3BF6 /* adventofCode.entitlements */,
@@ -84,6 +87,7 @@
 				499971DC2765FBC3001A3BF6 /* Sources */,
 				499971DD2765FBC3001A3BF6 /* Frameworks */,
 				499971DE2765FBC3001A3BF6 /* Resources */,
+				4981FD6A2781D2FA000137B4 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -143,6 +147,26 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		4981FD6A2781D2FA000137B4 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n/Users/andrew/bin/swiftlint.sh\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		499971DC2765FBC3001A3BF6 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -151,6 +175,7 @@
 				499971E62765FBC3001A3BF6 /* ContentView.swift in Sources */,
 				499971E42765FBC3001A3BF6 /* adventofCodeApp.swift in Sources */,
 				499971F527663CFB001A3BF6 /* PuzzleInput.swift in Sources */,
+				4981FD6C2781D50A000137B4 /* AdventofCode.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
