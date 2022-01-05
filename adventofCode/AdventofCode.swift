@@ -1,94 +1,130 @@
 //
-//  AdventofCode.swift
+let title = "AdventofCode Day 12: Caves "
 //
 
 import Foundation
 
 class AdventOfCode: ObservableObject {
-   @Published var useTestData: Bool = true
-   @Published var partOne: Int = 0
-   @Published var partTwo: Int = 0
-   var input: String { useTestData ? testData : puzzleData }
-   var data: [[Int]] = []
-   var gridsize = 0
+   //== Template variables for View ==//
+   @Published var dataSet: Int = 1
+   @Published var partOne: Int = -1
+   @Published var partTwo: Int = -1
+   var input: String {
+      switch dataSet {
+      case 0: return puzzleData
+      case 1: return testData1
+      case 2: return testData2
+      case 3: return testData3
+      default: return testData1
+      }
+   }
+
+   //== Puzzle Code ==//
+   var data: [Set<Vertex>] = []
+   let start = Vertex("start")
+   let end = Vertex("end")
+
+   enum CaveSize { case small, big
+      static func type(_ name: String) -> CaveSize {
+         return name.uppercased() == name ? .big : .small
+      }
+   }
+
+   struct Vertex: Hashable, Equatable {
+      var name: String
+      var size: CaveSize
+
+      func canBeVisited() -> Bool {
+			return true
+      }
+      init(_ name: String) {
+         self.name = name
+         self.size = CaveSize.type(name)
+      }
+   }
 
    func solvePartOne() {
       loadData()
-      partOne = 0
-      print("\nBeginning"); printData()
-      for _ in 1...100 {
-         incrementAll()
-         partOne += flashed()
-      	_ = zeroFlashed()
+      routes = []
+      calcRoutes(from: start)
+      print("Routes!!!!!!!!!!!!!!!!")
+      for route in routes {
+         printVertices(route)
       }
-      print("\nAfter step 100, there were \(partOne) flashes:"); printData()
+      partOne = routes.count
    }
 
-   func incrementAll() {
-      for row in 0..<gridsize {
-         for column in 0..<gridsize {
-            data[row][column] += 1
+   func printVertices(_ vs: [Vertex]) {
+      for v in vs { print(v.name, terminator: ", ") }
+      print("")
+   }
+
+   func calcRoutes(from v: Vertex, with vertices: [Vertex] = []) {
+      var currentVertices = vertices
+      currentVertices.append(v)
+      let linkedVertices = getVertices(from: v)
+      print("Calculating Route from \(v.name) whose vertices  are: ", terminator: "" ); printVertices(linkedVertices)
+      print("Route so far is: ", terminator: ""); printVertices(currentVertices)
+
+      func isOkToVisit(_ v: Vertex) -> Bool { v.size == .small && currentVertices.contains(v) ? false : true }
+      for vertex in linkedVertices where isOkToVisit(vertex) {
+         print("In for loop on: \(vertex.name)")
+         if vertex == end {
+            var s = currentVertices
+         	s.append(vertex)
+            print("route found! = ", terminator: ""); printVertices(s)
+            routes.append(s)
+         } else {
+            calcRoutes(from: vertex, with: currentVertices)
+            print("Finished calculating routes from  \(v.name) for \(vertex.name). Fallthrough to next vertex")
+      		print("      Route so far is ", terminator: ""); printVertices(currentVertices)
          }
       }
    }
-   func isValid(_ row: Int, _ col: Int) -> Bool {
-      row >= 0 && row < gridsize && col >= 0 && col < gridsize && data[row][col] != -1
+
+   func getVertices(from v: Vertex) -> [Vertex] {
+      data.filter { $0.contains(v) } .map { set -> Vertex in
+         let pair = [Vertex](set)
+         return pair[0].name == v.name ? pair[1] : pair[0]
+      }.filter { $0.name != "start" }
    }
-   func increaseNeighbours(_ row: Int, _ column: Int) {
-      for rowAdjust in [-1, 0, 1] {
-         for columnAdjust in [-1, 0, 1]
-         	where rowAdjust != 0 || columnAdjust != 0 {
-            let r = row+rowAdjust; let c = column+columnAdjust
-            if isValid(r, c) {
-               data[r][c] += 1
-            }
-         }
+   var currentVertices: [Vertex] = []
+   var routes: [[Vertex]] = []
+   /*
+
+    iterate(from: "start")
+    routesSoFar: [Vertex] = [start]
+    validRoutes: [Vertex] = []
+    func iterate(from current: Vertex )
+
+   	for each route from current where routes exist and not visited {
+      	if route.contains("end") { add 1 to endCount; add routeSoFar to validRoutes  ]
+    		add route.to  to routeSoFar array
+			iterate(from: route.to)
       }
-   }
 
-   func zeroFlashed() -> Int {
-      var counter = 0
-      for row in (0..<gridsize) {
-         for col in (0..<gridsize) where data[row][col] == -1 {
-            counter += 1
-            data[row][col] = 0
-         }
-      }
-      return counter
-   }
-
-   func flashed() -> Int {
-      var flashes: Int = 0
-      var newFlashes: Int
-      repeat {
-         newFlashes = 0
-         for row in 0..<gridsize {
-            for column in 0..<gridsize where data[row][column] > 9 {
-               newFlashes += 1
-               data[row][column] = -1
-               increaseNeighbours(row, column)
-            }
-         }
-         flashes += newFlashes
-      } while newFlashes > 0
-
-      return flashes
-   }
+    	func canVisited(v: Vertex) -> Bool {
+    		!routeSoFar.contains(v) || v.size == .large
+    	}
+    }
+    */
 
    func solvePartTwo() {
-      var step = 0
       loadData()
-      partTwo = 0
-      repeat {
-         step += 1
-         incrementAll()
-         partOne += flashed()
-      } while zeroFlashed() != gridsize*gridsize
-      partTwo = step
+      partTwo = 1
    }
 
    func loadData() {
-      data = input.components(separatedBy: "\n").map { $0.map { Int(String($0))! }}
-      gridsize = data.count
+      data = []
+      var s: Set<Vertex> = []
+      for pair in input.components(separatedBy: "\n") {
+         let vertices = pair.components(separatedBy: "-")
+         guard vertices.count == 2 else { return }
+         s = []
+         s.insert(Vertex(vertices[0] ))
+         s.insert(Vertex(vertices[1] ))
+         data.append(s)
+      }
+
    }
 }
