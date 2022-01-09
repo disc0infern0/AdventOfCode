@@ -11,9 +11,9 @@ struct ContentView: View {
          	Text("\n\(title)\n\n")
 
             Picker(selection: $advent.dataSet, label: Text("Data Set:")) {
-               Text("Test Set One").tag(1)
-               Text("Test Set Two").tag(2)
-               Text("Test Set Three").tag(3)
+               Text("Test Data").tag(1)
+//               Text("Test Dataset Two").tag(2)
+//               Text("Test Dataset Three").tag(3)
                Text("Puzzle Data").tag(0)
             }
             .pickerStyle(.radioGroup)

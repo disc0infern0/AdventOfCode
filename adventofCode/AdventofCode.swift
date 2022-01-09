@@ -1,5 +1,8 @@
 //
-let title = "AdventofCode Day 12: Caves "
+let title = """
+AdventofCode Day 13
+Transparent Origami
+"""
 //
 
 import Foundation
@@ -13,78 +16,63 @@ class AdventOfCode: ObservableObject {
    var input: String {
       switch dataSet {
       case 0: return puzzleData
-      case 1: return testData1
+      case 1: return testData
       case 2: return testData2
       case 3: return testData3
-      default: return testData1
+      default: return testData
       }
    }
 
    //== Puzzle Code ==//
-   var data: [Set<Vertex>] = []
-   let start = Vertex(name: "start")
-   let end = Vertex(name: "end")
-
-   enum CaveSize { case small, big }
-
-   struct Vertex: Hashable, Equatable {
-      var name: String
-      var size: CaveSize { name.uppercased() == name ? .big : .small }
-   }
+   struct Point: Hashable { var x: Int, y: Int }
+   enum Axis { case x, y }
+   struct Fold { var axis: Axis; var amount: Int }
+   var points: Set<Point> = []
+   var folds: [Fold] = []
 
    func solvePartOne() {
       loadData()
-      partOne = 0
-      calcRoutesPartOne(from: start)
-   }
-
-   func calcRoutesPartOne(from vertex: Vertex, with vertices: [Vertex] = []) {
-      var currentVertices = vertices
-      currentVertices.append(vertex)
-      for v in connections(from: vertex)
-      where v.size == .big || (v.size == .small && !currentVertices.contains(v)) {
-         if v == end {
-            partOne += 1
-         } else {
-            calcRoutesPartOne(from: v, with: currentVertices)
-         }
-      }
-   }
-
-   func connections(from v: Vertex) -> [Vertex] {
-      data.filter { $0.contains(v) } .map { set -> Vertex in
-         let pair = [Vertex](set)
-         return pair[0].name == v.name ? pair[1] : pair[0]
-      }.filter { $0.name != "start" }
+      doFold(folds[0], to: &points )
+      partOne = points.count
    }
 
    func solvePartTwo() {
       loadData()
-      partTwo = 0
-      calcRoutesPartTwo(from: start)
-   }
-
-   func calcRoutesPartTwo(from vertex: Vertex, with vertices: [Vertex] = []) {
-      var currentVertices = vertices; currentVertices.append(vertex)
-      let twoVisited = !currentVertices.filter({$0.size == .small}).allSatisfy {vtx in
-         currentVertices.filter { $0 == vtx }.count < 2 }
-      for v in connections(from: vertex)
-      where v.size == .big || (v.size == .small &&
-       ( !currentVertices.contains(v)  ||
-         currentVertices.filter {$0 == v}.count == 1 && twoVisited == false ) ) {
-         if v == end {
-            partTwo += 1
-         } else {
-            calcRoutesPartTwo(from: v, with: currentVertices)
+      for fold in folds {
+         doFold(fold, to: &points )
+      }
+      for y in 0...points.map(\.y).max()! {
+         for x in 0...points.map(\.x).max()! {
+            print("\(points.contains(Point(x: x, y: y)) ? "🟩" : "⬛️")", terminator: "")
          }
+         print("")
       }
    }
 
-   func loadData() {
-      data = input.split(separator: "\n")
-         .reduce(into: [Set<Vertex>]()) { rolling, value in
-         	let caves = value.components(separatedBy: "-")
-            rolling.append([Vertex(name: caves[0]), Vertex(name: caves[1])])
+   func doFold(_ fold: Fold, to points: inout Set<Point>) {
+      func mod(_ xOrY: Int, _ amount: Int) -> Int {
+         xOrY > amount ? amount*2 - xOrY : xOrY
+      }
+      points = Set(points.map { point in
+         switch fold.axis {
+         case .x: return( Point(x: mod(point.x, fold.amount), y: point.y))
+         case .y: return( Point(x: point.x, y: mod(point.y, fold.amount)))
          }
+      })
+   }
+
+   func loadData() {
+      let components = input.components(separatedBy: "\n\n")
+
+      points = components[0]
+         .components(separatedBy: "\n")
+         .map { $0.split(separator: ",")}
+         .map { p in Point(x: Int(p[0])!, y: Int(p[1])!)}
+         .reduce(into: Set<Point>()) { points, point in points.insert(point) }
+
+      folds = components[1]
+         .components(separatedBy: "\n")
+         .map { $0.split(separator: "=")}
+         .map { f in Fold(axis: f[0].last == "x" ? .x : .y, amount: Int(f[1])!) }
    }
 }
