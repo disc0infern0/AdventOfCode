@@ -3,6 +3,7 @@ let title = "AdventofCode Day 12: Caves "
 //
 
 import Foundation
+import Metal
 
 class AdventOfCode: ObservableObject {
    //== Template variables for View ==//
@@ -21,110 +22,69 @@ class AdventOfCode: ObservableObject {
 
    //== Puzzle Code ==//
    var data: [Set<Vertex>] = []
-   let start = Vertex("start")
-   let end = Vertex("end")
+   let start = Vertex(name: "start")
+   let end = Vertex(name: "end")
 
-   enum CaveSize { case small, big
-      static func type(_ name: String) -> CaveSize {
-         return name.uppercased() == name ? .big : .small
-      }
-   }
+   enum CaveSize { case small, big }
 
    struct Vertex: Hashable, Equatable {
       var name: String
-      var size: CaveSize
-
-      func canBeVisited() -> Bool {
-			return true
-      }
-      init(_ name: String) {
-         self.name = name
-         self.size = CaveSize.type(name)
-      }
+      var size: CaveSize { name.uppercased() == name ? .big : .small }
    }
 
    func solvePartOne() {
       loadData()
-      routes = []
-      calcRoutes(from: start)
-      print("Routes!!!!!!!!!!!!!!!!")
-      for route in routes {
-         printVertices(route)
-      }
-      partOne = routes.count
+      partOne = 0
+      calcRoutesPartOne(from: start)
    }
 
-   func printVertices(_ vs: [Vertex]) {
-      for v in vs { print(v.name, terminator: ", ") }
-      print("")
-   }
-
-   func calcRoutes(from v: Vertex, with vertices: [Vertex] = []) {
+   func calcRoutesPartOne(from vertex: Vertex, with vertices: [Vertex] = []) {
       var currentVertices = vertices
-      currentVertices.append(v)
-      let linkedVertices = getVertices(from: v)
-      print("Calculating Route from \(v.name) whose vertices  are: ", terminator: "" ); printVertices(linkedVertices)
-      print("Route so far is: ", terminator: ""); printVertices(currentVertices)
-
-      func isOkToVisit(_ v: Vertex) -> Bool { v.size == .small && currentVertices.contains(v) ? false : true }
-      for vertex in linkedVertices where isOkToVisit(vertex) {
-         print("In for loop on: \(vertex.name)")
-         if vertex == end {
-            var s = currentVertices
-         	s.append(vertex)
-            print("route found! = ", terminator: ""); printVertices(s)
-            routes.append(s)
+      currentVertices.append(vertex)
+      for v in connections(from: vertex)
+      where v.size == .big || (v.size == .small && !currentVertices.contains(v)) {
+         if v == end {
+            partOne += 1
          } else {
-            calcRoutes(from: vertex, with: currentVertices)
-            print("Finished calculating routes from  \(v.name) for \(vertex.name). Fallthrough to next vertex")
-      		print("      Route so far is ", terminator: ""); printVertices(currentVertices)
+            calcRoutesPartOne(from: v, with: currentVertices)
          }
       }
    }
 
-   func getVertices(from v: Vertex) -> [Vertex] {
+   func connections(from v: Vertex) -> [Vertex] {
       data.filter { $0.contains(v) } .map { set -> Vertex in
          let pair = [Vertex](set)
          return pair[0].name == v.name ? pair[1] : pair[0]
       }.filter { $0.name != "start" }
    }
-   var currentVertices: [Vertex] = []
-   var routes: [[Vertex]] = []
-   /*
-
-    iterate(from: "start")
-    routesSoFar: [Vertex] = [start]
-    validRoutes: [Vertex] = []
-    func iterate(from current: Vertex )
-
-   	for each route from current where routes exist and not visited {
-      	if route.contains("end") { add 1 to endCount; add routeSoFar to validRoutes  ]
-    		add route.to  to routeSoFar array
-			iterate(from: route.to)
-      }
-
-    	func canVisited(v: Vertex) -> Bool {
-    		!routeSoFar.contains(v) || v.size == .large
-    	}
-    }
-    */
 
    func solvePartTwo() {
       loadData()
-      partTwo = 1
+      partTwo = 0
+      calcRoutesPartTwo(from: start)
+   }
+
+   func calcRoutesPartTwo(from vertex: Vertex, with vertices: [Vertex] = []) {
+      var currentVertices = vertices; currentVertices.append(vertex)
+      let twoVisited = !currentVertices.filter({$0.size == .small}).allSatisfy {vtx in
+         currentVertices.filter { $0 == vtx }.count < 2 }
+      for v in connections(from: vertex)
+      where v.size == .big || (v.size == .small &&
+       ( !currentVertices.contains(v)  ||
+         currentVertices.filter {$0 == v}.count == 1 && twoVisited == false ) ) {
+         if v == end {
+            partTwo += 1
+         } else {
+            calcRoutesPartTwo(from: v, with: currentVertices)
+         }
+      }
    }
 
    func loadData() {
-      data = []
-      var s: Set<Vertex> = []
-      for pair in input.components(separatedBy: "\n") {
-         let vertices = pair.components(separatedBy: "-")
-         guard vertices.count == 2 else { return }
-         s = []
-         s.insert(Vertex(vertices[0] ))
-         s.insert(Vertex(vertices[1] ))
-         data.append(s)
-      }
-
+      data = input.split(separator: "\n")
+         .reduce(into: [Set<Vertex>]()) { rolling, value in
+         	let caves = value.components(separatedBy: "-")
+            rolling.append([Vertex(name: caves[0]), Vertex(name: caves[1])])
+         }
    }
 }
